@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: backend-service
+  annotations:
+    prometheus.io/port: "metrics-port"
+    prometheus.io/scrape: "true"
+  name: backend-fp-service
+spec:
+  selector:
+    app: backend-fp
+  ports:
+    - name: metrics-port
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer

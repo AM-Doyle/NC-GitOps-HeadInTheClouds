@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-fp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-fp
+  template:
+    metadata:
+      labels:
+        app: frontend-fp
+    spec:
+      containers:
+        - name: frontend-fp-app
+
+          image: public.ecr.aws/s3g7x1p9/ce-fp-ecr-frontend:latest
+
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_API_BASE_URL
+
+              value: acd139500b0494e2fa10e06c19ec3717-1592110288.eu-west-2.elb.amazonaws.com
+

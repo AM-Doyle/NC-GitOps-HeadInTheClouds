@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-fp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-fp
+  template:
+    metadata:
+      labels:
+        app: backend-fp
+    spec:
+      containers:
+        - name: backend-fp-app
+
+          image: public.ecr.aws/s3g7x1p9/ce-fp-ecr-backend:latest
+
+          ports:
+            - containerPort: 8080 

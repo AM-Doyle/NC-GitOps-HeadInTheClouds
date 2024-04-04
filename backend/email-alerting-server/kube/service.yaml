@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: email-alert-server-service
+spec:
+  selector:
+    app: email-alert
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 3000
+  type: LoadBalancer

@@ -1,0 +1,9 @@
+.terraform
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
+cloud-project.pem
+terraform.tfvars
+cloud.tf
+tfIntroKey.pem

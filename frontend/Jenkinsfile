@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    environment {
+        neatVersion = '1.0.0'
+        currentDate = sh(script: 'date "+%d%m%Y"', returnStdout: true).trim()
+        versionTag = "${neatVersion}-${currentDate}" 
+        aws_access_key = {enter here}
+        aws_secret_access_key = {enter here}
+        aws_region = "eu-west-2"
+        ecrPush = "aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/l8s5c1e9"
+        targetRepo = 'public.ecr.aws/l8s5c1e9/test'
+    }
+
+    stages {
+
+        stage('Configure AWS') {
+            steps {
+                script {
+                    sh "aws configure set aws_access_key_id ${aws_access_key}"
+                    sh "aws configure set aws_secret_access_key ${aws_secret_access_key}"
+                    sh "aws configure set default.region ${aws_region}"
+                    sh 'aws configure set default.output json'
+                }
+            }
+        }
+        
+        stage('Building and Tagging image') {
+            steps {
+                script {
+                    sh "${ecrPush}"
+                    sh "docker build --platform=linux/amd64 -t ${targetRepo}:${versionTag} ."          
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    sh "docker push ${targetRepo}:${versionTag}"
+                }
+            }
+        }
+    }
+}

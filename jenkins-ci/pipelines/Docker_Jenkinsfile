@@ -1,0 +1,48 @@
+// This is an example of a simple pipeline which builds your app and pushes it to DockerHub repository of your choice.
+
+// To use this pipeline, please configure your environment, rename this file "Jenkinsfile" and copy it into your app repository.
+
+pipeline {
+    agent any
+
+    environment {
+        registryCredential = 'YOUR_ID' //Please configure your Jenkins credentials with Docker before running this pipeline, as it relies on Jenkins credentials.
+        dockerImageTag = 'latest'
+        neatVersion = '1.0.0'
+        currentDate = sh(script: 'date "+%d%m%Y"', returnStdout: true).trim()
+        versionTag = "${neatVersion}-${currentDate}" 
+        dockerTargetID = 'YOUR_DOCKER_ID'
+        dockerTargetRepo = 'YOUR_DOCKER_REPO_NAME'
+    }
+
+    stages {
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        def dockerImage = docker.build("${dockerTargetID}/${dockerTargetRepo}:${dockerImageTag}", '-f Dockerfile .')
+                    }
+                }
+            }
+        }
+
+        stage('Tagging image') {
+            steps {
+                script {
+                    docker.image("${dockerTargetID}/${dockerTargetRepo}:${dockerImageTag}").tag("${env.versionTag}")
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        docker.image("${dockerTargetID}/${dockerTargetRepo}:${env.versionTag}").push()
+                    }
+                }
+            }
+        }
+    }
+}

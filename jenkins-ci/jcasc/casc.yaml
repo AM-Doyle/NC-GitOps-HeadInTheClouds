@@ -1,0 +1,22 @@
+# Setting up the security credentials
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: ${JENKINS_ADMIN_ID}
+          password: ${JENKINS_ADMIN_PASSWORD}
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "USER:Overall/Administer:${JENKINS_ADMIN_ID}"
+        - "GROUP:Overall/Read:authenticated"
+security:
+  queueItemAuthenticator:
+    authenticators:
+      - global:
+          strategy: triggeringUsersAuthorizationStrategy
+# Tell Jenkins to use the server IP
+unclassified:
+  location:
+    url: http://${JENKINS_IP_ADDRESS}:8080/

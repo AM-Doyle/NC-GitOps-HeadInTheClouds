@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: back-end
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: back-end
+  template:
+    metadata:
+      labels:
+        app: back-end
+    spec:
+      containers:
+        - name: back-end
+          image: public.ecr.aws/s3g7x1p9/ce-fp-ecr:backend-1
+          ports:
+            - containerPort: 3000

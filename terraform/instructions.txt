@@ -1,0 +1,121 @@
+//terraform
+go to terraform folder
+- terraform init
+- terraform apply
+go to tf-ecr
+- terraform init
+- terraform apply
+
+// change kubernetes to new cluster
+go to terraform folder
+- aws eks --region $(terraform output -raw region) update-kubeconfig \
+    --name $(terraform output -raw cluster_name)
+    
+// giving kubernetes access to the eks cluster
+go to the aws site and find your eks cluster
+click create access entry and leave all options default 
+add the policies (AmazonEKSAdminPolicy) and (AmazonEKSClusterAdminPolicy) to the cluster
+    
+// set up argo
+- kubectl create namespace argocd
+- kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+- kubectl get pods -n argocd
+{wait untill all pods are running before moving to next step}
+
+// obtain argocd password and port forward
+- kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+{make note of password given in terminal}
+- kubectl port-forward svc/argocd-server -n argocd 8080:443
+go to localhost:8080 {accept risk and continue}
+username = admin
+password = output from previous step
+
+// connect repo to argo
+go to settings -> rpositories -> + connect repo
+chose your connection method = VIA HTTPS
+type = git
+Project = default
+Repository URL = (url of backend/frontend app)
+Username = (your git username)
+Password = (Personal access token)
+{repeat this for both backend and frontend repos}
+
+// connect argo to prometheus repo
++ connect repo
+chose your connection method = VIA HTTPS
+type = helm
+name = prometheus-community
+project = default
+repository url = https://prometheus-community.github.io/helm-charts
+connect
+
+// creating prometheus app in argo
+go to Applications -> + New App
+application name = prometheus
+project name = default
+sync options = (check server side apply)
+repository url = https://prometheus-community.github.io/helm-charts
+chart = kube-prometheus-stack {version: 48.6.0}
+cluster URL = https://kubernetes.default.svc
+Namespace = default
+In Values set the following options:
+-> `nodeExporter.enabled` as `false`
+-> `prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues` as `false`
+-> `prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues` as `false`
+{you may need to sync twice due to a bug}
+- kubectl port-forward svc/prometheus-operated 9090:9090
+connect to prometheus using localhost:9090
+
+// creating backend image and pushing to ecr
+go to aws and find ce-f-ecr-backend
+click view push commands and follow instructuions
+- aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s3g7x1p9
+- docker build -t ce-fp-ecr-backend .
+- docker tag ce-fp-ecr-backend:latest public.ecr.aws/s3g7x1p9/ce-fp-ecr-backend:latest
+- docker push public.ecr.aws/s3g7x1p9/ce-fp-ecr-backend:latest
+now get the uri for the image and add it to the backend deployment.yaml file
+push changes to github
+
+// setting up backend app in argo
+go to Applications -> + New App
+Application Name = Backend/Frontend
+Project Name = Default
+Sync Policy = Automatic
+Repository URL = (url of either frontend or backend)
+Revision = (whichever branch youre working in)
+path = kube
+cluster URL = https://kubernetes.default.svc
+Namespace = default
+click create
+wait to be synced
+
+//create frontend image
+- kubectl get service
+copy the backend public dns address and paste it in the frontend deployment.yaml file as the variable VITE_API_BASE_URL
+go to aws and find ce-f-ecr-frontend
+click view push commands and follow instructuions
+- aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s3g7x1p9
+- docker build -t ce-fp-ecr-frontend .
+- docker tag ce-fp-ecr-frontend:latest public.ecr.aws/s3g7x1p9/ce-fp-ecr-frontend:latest
+- docker push public.ecr.aws/s3g7x1p9/ce-fp-ecr-frontend:latest
+now get the uri for the image and add it to the frontend deployment.yaml file
+push changes to github
+
+// setting up frontend app in argo
+go to Applications -> + New App
+Application Name = Backend/Frontend
+Project Name = Default
+Sync Policy = Automatic
+Repository URL = (url of either frontend or backend)
+Revision = (whichever branch youre working in)
+path = kube
+cluster URL = https://kubernetes.default.svc
+Namespace = default
+click create
+wait to be synced
+
+// port forward for grafana
+- kubectl port-forward svc/prometheus-grafana 9091:80
+access grafana at localhost:9091
+username = admin
+password = prom-operator

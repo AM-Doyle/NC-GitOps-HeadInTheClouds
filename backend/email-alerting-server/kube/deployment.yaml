@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-alert
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-alert
+  template:
+    metadata:
+      labels:
+        app: email-alert
+    spec:
+      containers:
+        - name: email-alert-app
+          image: public.ecr.aws/s3g7x1p9/ce-fp-ecr-backend:email-1
+          ports:
+            - containerPort: 4000
+          env: 
+            - name: RECIPIENT_ADDRESS
+              value: {recipient email here}
+            - name: SENDER_ADDRESS
+              value: {sender email here}
+            - name: ACCESS_KEY
+              value: {iam user access key}
+            - name: SECRET_ACCESS_KEY
+              value: {iam user secret access key}
