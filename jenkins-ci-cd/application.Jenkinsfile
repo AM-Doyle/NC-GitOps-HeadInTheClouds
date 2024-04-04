@@ -2,8 +2,8 @@ pipeline {
     agent any
     environment {
         GITHUB_CREDENTIALS = 'GITHUB_CREDENTIALS'
-        ECR_FRONTEND_REPOSITORY = 'public.ecr.aws/z1i5q8e6/hitc-ecr-frontend'
-        ECR_BACKEND_REPOSITORY = 'public.ecr.aws/z1i5q8e6/hitc-ecr-backend'
+        ECR_FRONTEND_REPOSITORY = 'public.ecr.aws/[ecr-id]/hitc-ecr-frontend'
+        ECR_BACKEND_REPOSITORY = 'public.ecr.aws/[ecr-id]/hitc-ecr-backend'
         }
     stages {
         stage('Prepare') {
@@ -14,8 +14,8 @@ pipeline {
         stage('Clone') {
             steps {
                 script {
-                    dir('Head-In-The-Clouds-Cloud-Project') {
-                        git credentialsId: "${env.GITHUB_CREDENTIALS}", url: 'https://github.com/jawadscloud/Head-In-The-Clouds-Cloud-Project.git', branch: 'main'
+                    dir('NC-GitOps-HeadInTheClouds') {
+                        git credentialsId: "${env.GITHUB_CREDENTIALS}", url: 'https://github.com/AM-Doyle/NC-GitOps-HeadInTheClouds.git', branch: 'main'
                     }
                     dir('ce-team-project-frontend') {
                         git credentialsId: "${env.GITHUB_CREDENTIALS}", url: 'https://github.com/northcoders/ce-team-project-frontend.git', branch: 'main'
@@ -48,14 +48,16 @@ pipeline {
                     sh 'aws eks --region eu-west-2 update-kubeconfig --name hitc-eks-cluster'
                     def BACKEND_SERVICE = sh(script: "kubectl get svc backend-service -n hitc -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}'", returnStdout: true).trim()
                     def BACKEND_SERVICE_URL = BACKEND_SERVICE + ":8080"
-                    dir('Head-In-The-Clouds-Cloud-Project') {
-                        dir('helm') {
-                            dir('hitc') {
-                                dir('templates') {
-                                    sh "sed -i 's|value: \"\"|value: \"${BACKEND_SERVICE_URL}\"|g' ./frontend-deployment.yaml"
+                    dir('NC-GitOps-HeadInTheClouds') {
+                        dir('jenkins-ci-cd') {
+                            dir('helm') {
+                                dir('hitc') {
+                                    dir('templates') {
+                                        sh "sed -i 's|value: \"\"|value: \"${BACKEND_SERVICE_URL}\"|g' ./frontend-deployment.yaml"
+                                    }
                                 }
+                                sh 'helm upgrade --install hitc ./hitc --namespace hitc --create-namespace'
                             }
-                            sh 'helm upgrade --install hitc ./hitc --namespace hitc --create-namespace'
                         }
                     }
                     sh 'kubectl get pods -n hitc'
