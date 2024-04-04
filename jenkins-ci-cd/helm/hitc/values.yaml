@@ -1,0 +1,27 @@
+frontend:
+  deployment:
+    name: frontend-deployment
+  replicas: 1
+  label: frontend
+  container:
+    name: frontend
+    port: 80
+  image: public.ecr.aws/[ecr-id]/hitc-ecr-frontend:frontend-1
+  service:
+    name: frontend-service
+    type: LoadBalancer
+    port: 80
+
+backend:
+  deployment:
+    name: backend-deployment
+  replicas: 1
+  label: backend
+  container:
+    name: backend
+    port: 8080
+  image: public.ecr.aws/[ecr-id]/hitc-ecr-backend:backend-1
+  service:
+    name: backend-service
+    type: LoadBalancer
+    port: 8080
