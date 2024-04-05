@@ -28,7 +28,6 @@ resource "aws_instance" "jenkins_instance" {
 
    user_data = <<-EOF
               #!/bin/bash
-              sleep 20
               sudo apt-get update && sudo apt-get install -y apt curl gnupg
               sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
               curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -

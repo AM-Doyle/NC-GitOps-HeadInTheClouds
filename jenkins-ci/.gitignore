@@ -6,4 +6,3 @@ terraform.tfstate.backup
 cloud-project.pem
 terraform.tfvars
 cloud.tf
-tfIntroKey.pem
