@@ -10,7 +10,7 @@ This was the final project for the Head in the Clouds team during our Northcoder
 
 The team consists of Alex Doyle @AM-Doyle, Jawad Ahmed @jawadscloud, Kay Kazmierczak @kay-hk and Valeria Bykova @Lera-Bykova.
 
-We worked togeather over the course of a week and a half to produce a DevOps environment for our app including CI, CD, and monitoring ect.
+We worked together over the course of a week and a half to produce a DevOps environment for our app including CI, CD, and monitoring.
 
 This was a fantastic opportunity to showcase our skills as individuals and for the experience to work togeather as a team of professionals.
 
